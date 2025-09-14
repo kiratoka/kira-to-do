@@ -1,10 +1,44 @@
+"use client"
 import React, { useState } from 'react'
 import { Calendar, Circle, CircleCheck, Clock } from "lucide-react"
-const TaskCard = () => {
+import { Todo } from '@/types'
+import { formatDateToIndonesian } from '@/lib/utils'
+import { logger } from '@/lib/logger'
+import { useRouter } from 'next/navigation'
+
+
+const TaskCard = ({ task }: { task: Todo }) => {
+    const router = useRouter()
     const [isCompleted, setIsCompleted] = useState(false)
 
     const handleCompleted = () => {
         setIsCompleted(!isCompleted)
+    }
+
+
+    const handleDelete = async () => {
+        try {
+            const res = await fetch(("/api/delete"), {
+                method: "DELETE",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify(task.id)
+            })
+            if (!res.ok) {
+                throw new Error("Kesalahan saat mengirim data ke API")
+            } else {
+                logger.info("Data berhasil dihapus")
+                router.push("/")
+
+            }
+        } catch (error: unknown) {
+            if (error instanceof Error) {
+                logger.error({ error }, "Error yang diketahui")
+            } else {
+                logger.error({ error }, "Error yang tidak diketahui")
+            }
+        }
     }
 
 
@@ -23,14 +57,14 @@ const TaskCard = () => {
 
 
 
-                    Belajar Next.js dan Typescript</h1>
+                    {task.title}</h1>
                 {/* Title End */}
 
                 {/* Description */}
                 <div className="mt-10">
                     <h1 className="text-xl text-gray-800 font-semibold">Deskripsi</h1>
                     <div className="mt-2 p-6 leading-relaxed whitespace-pre-wrap border border-gray-200 rounded-lg text-gray-700">
-                        <p>Mendalami cara membuat aplikasi full-stack dengan Next.js 14 dan Prisma ORM untuk database management. Termasuk belajar server actions dan app router.</p>
+                        <p>{task.description}</p>
                     </div>
                 </div>
                 {/* Description End */}
@@ -38,20 +72,20 @@ const TaskCard = () => {
                 {/* Metadata */}
                 <div className="grid grid-cols-2 gap-4 mt-10">
                     {/* Dibuat */}
-                    <div className="flex items-center gap-2 bg-cyan-100/40 text-cyan-700 p-4 rounded-lg">
+                    <div className="flex items-center gap-3 bg-cyan-100/40 text-cyan-700 p-4 rounded-lg">
                         <Calendar />
                         <div>
                             <h1>Dibuat</h1>
-                            <p>11 September 2025</p>
+                            <p>{formatDateToIndonesian(task.createdAt)}</p>
                         </div>
                     </div>
                     {/* Dibuat End */}
                     {/* Terakhir diubah */}
-                    <div className="flex items-center gap-2 bg-cyan-100/40 text-cyan-700 p-4 rounded-lg">
+                    <div className="flex items-center gap-3 bg-cyan-100/40 text-cyan-700 p-4 rounded-lg">
                         <Clock />
                         <div>
                             <h1>Terakhir diubah</h1>
-                            <p>11 September 2025</p>
+                            <p>{formatDateToIndonesian(task.updatedAt)}</p>
                         </div>
                     </div>
                     {/* Terakhir diubah End */}
@@ -63,8 +97,8 @@ const TaskCard = () => {
                     <button className="bg-green-500 hover:bg-green-600 transition-all duration-200 text-white p-4 rounded-xl cursor-pointer">
                         <h1 className="font-bold">Tandai selesai</h1>
                     </button>
-                    <button className="bg-cyan-500 hover:bg-cyan-600 transition-all duration-200 text-white p-4 rounded-xl cursor-pointer">
-                        <h1 className="font-bold">Edit</h1>
+                    <button onClick={handleDelete} className="bg-red-500 hover:bg-red-600 transition-all duration-200 text-white p-4 rounded-xl cursor-pointer">
+                        <h1 className="font-bold">Hapus</h1>
                     </button>
                 </div>
             </div>

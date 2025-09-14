@@ -1,23 +1,27 @@
 
 
 import TaskId from "@/components/TaskId/TaskId"
+import { prisma } from "@/lib/prisma";
 
-const toDo = {
-    id: '1',
-    title: 'Belajar Next.js dan Prisma',
-    description: 'Mendalami cara membuat aplikasi full-stack dengan Next.js 14 dan Prisma ORM untuk database management. Termasuk belajar server actions dan app router.',
-    completedAt: null, // null jika belum selesai
-    createdAt: new Date('2024-03-15T10:30:00'),
-    updatedAt: new Date('2024-03-16T14:20:00')
-};
+
 
 const page = async ({ params }: { params: Promise<{ id: string }> }) => {
     const { id } = await params
 
+    const taskId = await prisma.todo.findUnique({
+        where: {
+            id
+        }
+    })
 
     return (
         <div className="max-w-6xl mt-8 mx-auto px-10">
-            <TaskId toDo={toDo} />
+            {
+                taskId ?
+                    <TaskId task={taskId} />
+                    :
+                    <p className="flex justify-center items-center h-screen">Data tidak ditemukan 🙄</p>
+            }
         </div>
     )
 }
